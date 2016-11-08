@@ -14,7 +14,7 @@ namespace SPIRVReplace
             RedirectStdErr = false;
         }
 
-        public void Run(string applicationName, string arguments)
+        public int Run(string applicationName, string arguments)
         {
             using (Process p = new Process
             {
@@ -55,12 +55,13 @@ namespace SPIRVReplace
                     p.BeginErrorReadLine();
 
                 p.WaitForExit();
+                return p.ExitCode;
             }
         }
 
         private void P_ErrorDataReceived(object sender, DataReceivedEventArgs e)
         {
-            Console.WriteLine(e.Data);
+            Debug.WriteLine(e.Data);
         }
 
         private static void P_OutputDataReceived(object sender, DataReceivedEventArgs e)

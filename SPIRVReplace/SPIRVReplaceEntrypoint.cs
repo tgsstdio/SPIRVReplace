@@ -1,4 +1,6 @@
-﻿namespace SPIRVReplace
+﻿using System.Collections.Generic;
+
+namespace SPIRVReplace
 {
     public class SPIRVReplaceUtility
     {
@@ -8,32 +10,45 @@
 
         public string Replace(string inputFile, string entrypoint)
         {
-            // COMPILER
-            var compiler = new GLSLCompiler(inputFile);
-            compiler.ApplicationName = Compiler;
-            compiler.Run();                       
+            var tempFiles = new List<string>();
 
-            // DISASSEMBLIER
-            var disassemblier = new Disassemblier(compiler.OutputFile);
-            disassemblier.ApplicationName = Disassemblier;
-            disassemblier.Run();
+            try
+            {
+                // COMPILER
+                var compiler = new GLSLCompiler(inputFile);
+                compiler.Executable = Compiler;
+                compiler.Run();
+                tempFiles.Add(compiler.OutputFile);
 
-            // SEARCH AND REPLACE 
-            var sed = new ReplaceEntrypoint(disassemblier.OutputFile, entrypoint, compiler.Stage);
-            sed.Run();
+                // DISASSEMBLIER
+                var disassemblier = new Disassemblier(compiler.OutputFile);
+                disassemblier.Executable = Disassemblier;
+                disassemblier.Run();
 
-            // REASSEMBLIER
-            var reassemblier = new Reassemblier(inputFile, sed.OutputFile);
-            reassemblier.ApplicationName = Reassemblier;
-            reassemblier.RedirectStdErr = true;
-            reassemblier.Run();
+                tempFiles.Add(disassemblier.OutputFile);
 
+                // SEARCH AND REPLACE 
+                var sed = new ReplaceEntrypoint(disassemblier.OutputFile, entrypoint, compiler.Stage);
+                sed.Run();
 
-            System.IO.File.Delete(compiler.OutputFile);
-            System.IO.File.Delete(disassemblier.OutputFile);
-            System.IO.File.Delete(sed.OutputFile);
+                // REASSEMBLIER
+                var reassemblier = new Reassemblier(inputFile, sed.OutputFile);
+                reassemblier.Executable = Reassemblier;
+                reassemblier.RedirectStdErr = true;
+                reassemblier.Run();
 
-            return reassemblier.OutputFile;
+                tempFiles.Add(sed.OutputFile);
+                
+                return reassemblier.OutputFile;
+            }
+            finally
+            {
+                foreach(var filePath in tempFiles)
+                {
+                    System.IO.File.Delete(filePath);
+                }
+            }
+
         }
     }
 }

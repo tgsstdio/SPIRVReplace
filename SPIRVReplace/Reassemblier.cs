@@ -1,4 +1,5 @@
-﻿using System.Text;
+﻿using System;
+using System.Text;
 
 namespace SPIRVReplace
 {
@@ -10,34 +11,37 @@ namespace SPIRVReplace
         {
             this.mInputFile = inputFile;
 
-            ApplicationName = "spirv-as.exe";
+            Executable = "spirv-as.exe";
 
             // Vulkan shader
-            OutputFile = System.IO.Path.ChangeExtension(originalFile, ".spv");
+            OutputFile = originalFile + ".spv";
         }
 
-        public string ApplicationName { get; internal set; }
+        public string Executable { get; internal set; }
         public bool RedirectStdErr { get; internal set; }
 
         internal void Run()
         {
-            if (!System.IO.File.Exists(ApplicationName))
+            if (!System.IO.File.Exists(Executable))
             {
-                throw new System.IO.FileNotFoundException(nameof(Reassemblier) + " missing", ApplicationName);
+                throw new System.IO.FileNotFoundException(nameof(Reassemblier) + " EXECUTABLE", Executable);
             }
 
             if (!System.IO.File.Exists(this.mInputFile))
             {
-                throw new System.IO.FileNotFoundException(nameof(Reassemblier) + " missing", this.mInputFile);
+                throw new System.IO.FileNotFoundException(nameof(Reassemblier) + " INPUT FILE", this.mInputFile);
             }
 
             var builder = new StringBuilder();
             builder.AppendFormat(" -o {0} {1}", OutputFile, mInputFile);
 
 
-            var program = new CLIProgram();
-            program.RedirectStdErr = RedirectStdErr;
-            program.Run(ApplicationName, builder.ToString());
+            var program = new CLIProgram { RedirectStdErr = true };
+            var exitCode = program.Run(Executable, builder.ToString());
+            if (exitCode != 0)
+            {
+                throw new InvalidOperationException(nameof(Reassemblier) + " error; Early exit.");
+            }
         }
 
         public string OutputFile { get; private set; }

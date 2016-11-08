@@ -11,7 +11,7 @@ Command line batch file program written in C# for compiling single stage **GLSL*
 ````
  > SPIRVReplace.exe sample.frag frag_func
  >> 
- >> Output file: sample.spv
+ >> Output file: sample.frag.spv
 ````
 
 Later on, you would supply "frag_func" as the stage's pName into Vulkan's VkPipelineShaderStageCreateInfo when create a new pipeline.

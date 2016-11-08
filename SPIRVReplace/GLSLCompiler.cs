@@ -1,4 +1,5 @@
-﻿using System.Text;
+﻿using System;
+using System.Text;
 
 namespace SPIRVReplace
 {
@@ -9,8 +10,8 @@ namespace SPIRVReplace
         public GLSLCompiler(string inputFile)
         {
             mInputFile = inputFile;
-            ApplicationName = "glslangValidator.exe";
-            OutputFile = System.IO.Path.ChangeExtension(inputFile, ".a");
+            Executable = "glslangValidator.exe";
+            OutputFile = System.IO.Path.GetTempFileName();
 
             string extension = System.IO.Path.GetExtension(mInputFile);
             switch (extension)
@@ -38,14 +39,14 @@ namespace SPIRVReplace
 
         public void Run()
         {
-            if (!System.IO.File.Exists(ApplicationName))
+            if (!System.IO.File.Exists(Executable))
             {
-                throw new System.IO.FileNotFoundException(nameof(GLSLCompiler) + " missing", ApplicationName);
+                throw new System.IO.FileNotFoundException(nameof(GLSLCompiler) + " EXECUTABLE", Executable);
             }
 
             if (!System.IO.File.Exists(mInputFile))
             {
-                throw new System.IO.FileNotFoundException(nameof(GLSLCompiler) + " missing", mInputFile);
+                throw new System.IO.FileNotFoundException(nameof(GLSLCompiler) + " INPUT FILE", mInputFile);
             }
 
             var builder = new StringBuilder();
@@ -53,13 +54,18 @@ namespace SPIRVReplace
             builder.Append("-V");
             builder.AppendFormat(" -o {0} {1}", OutputFile, mInputFile);
 
-            var program = new CLIProgram();
-            program.Run(ApplicationName, builder.ToString());
+            var program = new CLIProgram {  RedirectStdErr = true };
+            var exitCode = program.Run(Executable, builder.ToString());
+
+            if (exitCode != 0)
+            {
+                throw new CLIProgramException(nameof(GLSLCompiler) + " error; Early exit.");
+            }
         }
 
 
         public string OutputFile { get; internal set; }
         public ShaderStage Stage { get; internal set; }
-        public string ApplicationName { get; internal set; }
+        public string Executable { get; internal set; }
     }
 }

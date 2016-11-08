@@ -9,14 +9,14 @@
         {
             this.mInputFile = inputFile;
             this.mEntrypoint = entrypoint;
-            this.OutputFile = System.IO.Path.ChangeExtension(inputFile, ".c");
+            this.OutputFile = System.IO.Path.GetTempFileName();
         }
 
         public void Run()
         {
             if (!System.IO.File.Exists(mInputFile))
             {
-                throw new System.IO.FileNotFoundException(nameof(ReplaceEntrypoint) + " missing", mInputFile);
+                throw new System.IO.FileNotFoundException(nameof(ReplaceEntrypoint) + " INPUT FILE", mInputFile);
             }
 
             using (var fs = new System.IO.StreamReader(mInputFile))
