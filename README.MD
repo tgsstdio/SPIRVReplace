@@ -1,11 +1,20 @@
 # SPIRV Replace
 
- > Usage: SPIRVReplace.exe [input-file] [entrypoint] 
-
-Command line batch file program written in C# for compiling GLSL *[input-file]* into *SPIRV* bytecode and
+ > Usage: SPIRVReplace.exe [input-file] [entrypoint]
+ 
+Command line batch file program written in C# for compiling single stage **GLSL** shader files into **SPIRV** bytecode and
  then updating the entrypoint with SPIRV bytecode from "main" to *[entrypoint]*. 
+ 
+ All output files will be new SPIRV bytecode file ending with *.spv.
 
-*[entrypoint]* is the value passed into pName for Vulkan's VkPipelineShaderStageCreateInfo
+ For example:
+````
+ > SPIRVReplace.exe sample.frag frag_func
+ >> 
+ >> Output file: sample.spv
+````
+
+Later on, you would supply "frag_func" as the stage's pName into Vulkan's VkPipelineShaderStageCreateInfo when create a new pipeline.
 
 ~~~~ C++
 typedef struct VkPipelineShaderStageCreateInfo {
